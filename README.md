@@ -1,7 +1,6 @@
-# Smart Shopping Web Application
+# Smart Shopping Glasses for the Visually Impaired - Project &nbsp;[![](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/downloads/) [![platform](https://img.shields.io/badge/platform-windows-green.svg)](https://github.com/xenon-19/Gesture_Controller)
 
-A web-based platform featuring a shopping interface and a teller checkout system.
-
+This was a project 
 ## 📁 Project Structure
 * `main.py` - The primary Python backend script.
 * `templates/cart.html` - The frontend user interface for the shopping cart.
