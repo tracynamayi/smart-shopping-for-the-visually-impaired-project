@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Cart Terminal</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .cart-card {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            width: 480px;
+            padding: 24px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 16px;
+            margin-bottom: 16px;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #111827;
+            margin: 0;
+        }
+        .status-badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 9999px;
+            letter-spacing: 0.05em;
+        }
+        .status-badge.online {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        .status-badge.offline {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        .table-headers {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: 700;
+            color: #9ca3af;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+        .cart-items {
+            min-height: 120px;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+        .empty-state {
+            text-align: center;
+            color: #9ca3af;
+            font-style: italic;
+            padding-top: 40px;
+        }
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px dashed #f3f4f6;
+        }
+        .item-details {
+            display: flex;
+            flex-direction: column;
+        }
+        .item-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #374151;
+        }
+        .item-qty {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+        .item-price {
+            font-size: 16px;
+            font-weight: 700;
+            color: #111827;
+        }
+        .footer {
+            border-top: 1px dashed #e5e7eb;
+            margin-top: 16px;
+            padding-top: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .total-label {
+            font-size: 16px;
+            font-weight: 700;
+            color: #4b5563;
+        }
+        .total-amount {
+            font-size: 24px;
+            font-weight: 900;
+            color: #111827;
+        }
+        .checkout-btn {
+            display: block;
+            width: 100%;
+            background-color: #0a6c34;
+            color: white;
+            text-align: center;
+            padding: 14px 0;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 20px;
+            text-decoration: none;
+            transition: background 0.2s ease;
+        }
+        .checkout-btn:hover {
+            background-color: #074e25;
+        }
+    </style>
+</head>
+<body>
+
+<div class="cart-card">
+    <div class="header">
+        <h2 class="title">Active Cart</h2>
+        <span id="statusIndicator" class="status-badge offline">OFFLINE</span>
+    </div>
+
+    <div class="table-headers">
+        <span>Product Description</span>
+        <span>Price</span>
+    </div>
+
+    <div id="cartItemsContainer" class="cart-items">
+        <div class="empty-state">Waiting for items to be processed...</div>
+    </div>
+
+    <div class="footer">
+        <span class="total-label">Total Accumulation</span>
+        <span id="totalAccumulation" class="total-amount">$0.00</span>
+    </div>
+
+    <a href="teller4.html" class="checkout-btn">Proceed to Checkout</a>
+</div>
+
+<script>
+    const BACKEND_URL = "http://10.140.73.137:8080"; 
+
+    async function pollCartData() {
+        try {
+            const response = await fetch(`${BACKEND_URL}/cart`);
+            if (!response.ok) throw new Error("Server communication fault");
+            
+            const data = await response.json();
+            
+            // ── AUTOMATED VOICE NAVIGATION GATEWAY ───────────────────
+            if (data.checkout_triggered === true) {
+                console.log("[NAV] Voice command detected. Automating redirect to Teller screen...");
+                window.location.href = "teller4.html";
+                return;
+            }
+            // ─────────────────────────────────────────────────────────
+
+            const statusEl = document.getElementById("statusIndicator");
+            statusEl.textContent = "ONLINE";
+            statusEl.className = "status-badge online";
+
+            const container = document.getElementById("cartItemsContainer");
+            const totalEl = document.getElementById("totalAccumulation");
+
+            totalEl.textContent = `$${data.total.toFixed(2)}`;
+
+            if (!data.cart || data.cart.length === 0) {
+                container.innerHTML = `<div class="empty-state">Waiting for items to be processed...</div>`;
+                return;
+            }
+
+            container.innerHTML = data.cart.map(item => `
+                <div class="item-row">
+                    <div class="item-details">
+                        <span class="item-name">${item.product_name}</span>
+                        <span class="item-qty">Quantity: ${item.quantity}</span>
+                    </div>
+                    <span class="item-price">$${(item.price * item.quantity).toFixed(2)}</span>
+                </div>
+            `).join('');
+
+        } catch (error) {
+            const statusEl = document.getElementById("statusIndicator");
+            statusEl.textContent = "OFFLINE";
+            statusEl.className = "status-badge offline";
+            console.warn("[POLLING ERROR] Terminal engine is currently unreachable:", error);
+        }
+    }
+
+    setInterval(pollCartData, 1000);
+    pollCartData();
+</script>
+</body>
+</html>

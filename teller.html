@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Naivasil Teller Terminal - Checkout v4.1</title>
+    <style>
+        :root {
+            --naivas-green: #0a6c34;
+            --naivas-orange: #f26522;
+            --naivas-dark: #1e2421;
+            --screen-bg: #f4f7f5;
+            --panel-bg: #ffffff;
+            --border-color: #cbd5e1;
+        }
+
+        body {
+            font-family: "Segoe UI", -apple-system, Roboto, sans-serif;
+            background-color: var(--screen-bg);
+            color: var(--naivas-dark);
+            margin: 0;
+            padding: 15px;
+            box-sizing: border-box;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: var(--naivas-green);
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 4px solid var(--naivas-orange);
+            border-radius: 6px 6px 0 0;
+        }
+
+        .brand-section h1 {
+            margin: 0;
+            font-size: 1.6rem;
+            letter-spacing: 1px;
+            font-weight: 800;
+        }
+
+        .brand-section span {
+            color: var(--naivas-orange);
+        }
+
+        .system-status-pill {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 6px 14px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 15px;
+            flex: 1;
+            margin-top: 15px;
+            min-height: 0; 
+        }
+
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            min-height: 0;
+        }
+
+        .session-info-bar {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            padding: 12px 20px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.95rem;
+        }
+
+        .session-value {
+            font-family: monospace;
+            font-weight: bold;
+            background: #e2e8f0;
+            padding: 3px 8px;
+            border-radius: 4px;
+            color: #0f172a;
+        }
+
+        .receipt-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .table-scroll {
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background-color: #f1f5f9;
+            color: #475569;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 12px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.95rem;
+        }
+
+        .col-right {
+            text-align: right;
+        }
+
+        .col-center {
+            text-align: center;
+        }
+
+        .teller-totals-block {
+            background: #0f172a;
+            color: #00ff66;
+            padding: 20px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+        }
+
+        .total-banner-label {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+        }
+
+        .total-banner-value {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 3.2rem;
+            font-weight: 900;
+        }
+
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .payment-panel, .logs-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 15px;
+        }
+
+        .logs-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .panel-title {
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            color: #64748b;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .pay-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .pay-btn {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: #475569;
+            transition: all 0.2s ease;
+        }
+
+        .pay-btn.selected {
+            border-color: var(--naivas-green);
+            background-color: #f0fdf4;
+            color: var(--naivas-green);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #475569;
+        }
+
+        .input-group input {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 1rem;
+            font-family: monospace;
+        }
+
+        .action-pay-btn {
+            width: 100%;
+            background-color: var(--naivas-orange);
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .action-pay-btn:hover {
+            background-color: #d95216;
+        }
+
+        .terminal-log-output {
+            background: #1e293b;
+            color: #38bdf8;
+            font-family: monospace;
+            font-size: 0.85rem;
+            padding: 10px;
+            border-radius: 4px;
+            flex: 1;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        .empty-receipt {
+            text-align: center;
+            color: #94a3b8;
+            padding: 40px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand-section">
+            <h1>NAIVASIL<span>.</span> POS TERMINAL</h1>
+        </div>
+        <div class="system-status-pill" id="pos-clock">CONNECTED LIVE</div>
+    </header>
+
+    <div class="workspace">
+        
+        <div class="left-column">
+            <div class="session-info-bar">
+                <div><strong>POS Station:</strong> Lane 02 (Smart Cart Assisted)</div>
+                <div><strong>Session Key:</strong> <span class="session-value" id="pos-session-id">FETCHING...</span></div>
+            </div>
+
+            <div class="receipt-panel">
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 15%;">Item Code</th>
+                                <th style="width: 40%;">Description</th>
+                                <th style="width: 15%;" class="col-center">Qty</th>
+                                <th style="width: 15%;" class="col-right">Unit Price</th>
+                                <th style="width: 15%;" class="col-right">Total ($)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pos-items-body">
+                            <tr>
+                                <td colspan="5" class="empty-receipt">No scanned entries present in current basket. Ready for inputs.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="teller-totals-block">
+                <div class="total-banner-label">Amount Due</div>
+                <div class="total-banner-value">$<span id="pos-grand-total">0.00</span></div>
+            </div>
+        </div>
+
+        <div class="right-column">
+            <div class="payment-panel">
+                <h3 class="panel-title">Secure Payment Terminal</h3>
+                <div class="pay-options">
+                    <button class="pay-btn selected" id="method-phone" onclick="setPaymentMethod('phone')">📱 Phone Pay</button>
+                    <button class="pay-btn" id="method-card" onclick="setPaymentMethod('card')">💳 Credit/Debit</button>
+                </div>
+
+                <div class="input-group" id="payment-input-container">
+                    <label id="payment-label" for="payment-input">Customer Mobile Number</label>
+                    <input type="text" id="payment-input" placeholder="e.g. 0712345678" value="">
+                </div>
+
+                <button class="action-pay-btn" onclick="executePaymentProcess()">Process Transaction</button>
+            </div>
+
+            <div class="logs-panel">
+                <h3 class="panel-title">Terminal Audit Activity Log</h3>
+                <div class="terminal-log-output" id="pos-logs">[SYSTEM]: POS Boot Sequence initialization successful.<br>[SYSTEM]: Monitoring shopping cart pipelines on Port 8080...</div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const BASE_URL = "http://10.140.73.137:8080";
+        const API_URL = `${BASE_URL}/cart`;
+        const NTFY_TOPIC_URL = "https://ntfy.sh/tracy_naivas_pos_test"; 
+
+        let lastCartState = JSON.stringify([]);
+        let activeMethod = 'phone';
+        let currentGrandTotal = 0.00;
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('pos-clock').innerText = "LIVE | " + now.toLocaleTimeString();
+        }
+        setInterval(updateClock, 1000);
+
+        function writeToTerminalLog(message) {
+            const logBox = document.getElementById("pos-logs");
+            const timestamp = new Date().toLocaleTimeString();
+            logBox.innerHTML += `<br>[${timestamp}]: ${message}`;
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        async function clearSystemCheckoutFlag() {
+            try {
+                const response = await fetch(`${BASE_URL}/clear_checkout`, { method: "POST" });
+                if (response.ok) {
+                    writeToTerminalLog("POS Node initialized. Auto-checkout register successfully released.");
+                }
+            } catch (err) {
+                console.error("Could not reset navigation register status:", err);
+            }
+        }
+
+        function setPaymentMethod(method) {
+            activeMethod = method;
+            document.getElementById('method-phone').classList.remove('selected');
+            document.getElementById('method-card').classList.remove('selected');
+            
+            const label = document.getElementById('payment-label');
+            const input = document.getElementById('payment-input');
+
+            if(method === 'phone') {
+                document.getElementById('method-phone').classList.add('selected');
+                label.innerText = "Customer Mobile Number";
+                input.placeholder = "e.g. 0712345678";
+                input.type = "text";
+            } else {
+                document.getElementById('method-card').classList.add('selected');
+                label.innerText = "Card Number";
+                input.placeholder = "xxxx-xxxx-xxxx-xxxx";
+                input.type = "text";
+            }
+            writeToTerminalLog(`Payment gateway toggled to mode: ${method.toUpperCase()}`);
+        }
+
+        // ── XECUTION FUNCTION WITH NTFY COOLDOWN ──────────────────
+        async function executePaymentProcess() {
+            const inputVal = document.getElementById('payment-input').value.trim();
+            if (currentGrandTotal <= 0) {
+                alert("Cannot process checkout: Active basket is empty.");
+                return;
+            }
+            if (!inputVal) {
+                alert(`Please enter valid transaction credentials for ${activeMethod === 'phone' ? 'Phone Payment' : 'Card Payment'}.`);
+                return;
+            }
+
+            writeToTerminalLog(`[PENDING]: Initializing payment authorization request of $${currentGrandTotal}...`);
+            
+            if (activeMethod === 'phone') {
+                try {
+                    writeToTerminalLog(`[NTFY]: Sending payment request push notification to mobile client...`);
+                    
+                    const response = await fetch(NTFY_TOPIC_URL, {
+                        method: 'POST',
+                        body: `Payment requested for current basket. Total Amount Due: $${currentGrandTotal}. Account Reference: ${inputVal}.`,
+                        headers: {
+                            'Title': '🛒 Naivas Smart Shopping Payment Alert',
+                            'Priority': 'high',
+                            'Tags': 'moneybag,credit_card'
+                        }
+                    });
+
+                    if (response.ok) {
+                        writeToTerminalLog(`[NTFY SUCCESS]: Push notification successfully sent to phone.`);
+                    } else {
+                        writeToTerminalLog(`[NTFY WARNING]: Server accepted request but responded with code ${response.status}`);
+                    }
+                } catch (ntfyErr) {
+                    console.error("ntfy gateway broadcast failed:", ntfyErr);
+                    writeToTerminalLog(`[NTFY ERROR]: Could not reach push gateway. Check internet connection.`);
+                }
+            }
+
+            // Simulating internal database clear down and gateway delay
+            setTimeout(() => {
+                writeToTerminalLog(`[SUCCESS]: Payment verified via ${activeMethod.toUpperCase()}. Reference: TXN_${Math.floor(Math.random() * 899999 + 100000)}`);
+                alert(`Transaction Approved!\nAmount Paid: $${currentGrandTotal}\nMethod: ${activeMethod.toUpperCase()}`);
+            }, 1500);
+        }
+        // ───────────────────────────────────────────────────────────────────
+
+        async function pollCartEndpoint() {
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) throw new Error("Connection timed out");
+                
+                const data = await response.json();
+                
+                document.getElementById("pos-session-id").innerText = data.session_id || "OFFLINE SESS";
+
+                const currentDataString = JSON.stringify(data.cart);
+                if (currentDataString === lastCartState) return;
+                lastCartState = currentDataString;
+
+                const tbody = document.getElementById("pos-items-body");
+                const totalDisplay = document.getElementById("pos-grand-total");
+
+                if (!data.cart || data.cart.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="empty-receipt">No scanned entries present in current basket. Ready for inputs.</td></tr>`;
+                    totalDisplay.innerText = "0.00";
+                    currentGrandTotal = 0.00;
+                    return;
+                }
+
+                let rowsHtml = "";
+                data.cart.forEach(item => {
+                    const rowTotal = (item.price * item.qty).toFixed(2);
+                    rowsHtml += `
+                        <tr>
+                            <td>#${item.product_id}</td>
+                            <td><strong>${item.product_name.toUpperCase()}</strong> <br><small style='color: #64748b'>${item.section_name}</small></td>
+                            <td class="col-center">${item.qty}</td>
+                            <td class="col-right">${item.price.toFixed(2)}</td>
+                            <td class="col-right" style="font-weight: bold;">${rowTotal}</td>
+                        </tr>
+                    `;
+                });
+
+                tbody.innerHTML = rowsHtml;
+                currentGrandTotal = data.total.toFixed(2);
+                totalDisplay.innerText = currentGrandTotal;
+                writeToTerminalLog("Basket synchronized with active session cart. Total aggregated.");
+
+            } catch (err) {
+                document.getElementById("pos-session-id").innerText = "DISCONNECTED";
+                document.getElementById("pos-grand-total").innerText = "0.00";
+                currentGrandTotal = 0.00;
+                document.getElementById("pos-items-body").innerHTML = `<tr><td colspan="5" class="empty-receipt" style="color: #ef4444">POS Terminal failed to communicate with main Smart Cart API service. Ensure the python background script is running.</td></tr>`;
+            }
+        }
+
+        setInterval(pollCartEndpoint, 1000);
+        window.addEventListener("DOMContentLoaded", () => {
+            updateClock();
+            clearSystemCheckoutFlag();
+            pollCartEndpoint();
+        });
+    </script>
+</body>
+</html>

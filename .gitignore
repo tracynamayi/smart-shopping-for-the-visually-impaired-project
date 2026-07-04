@@ -1,0 +1,10 @@
+# Ignore python cache files
+__pycache__/
+*.pyc
+
+# Ignore large machine learning runs and weights
+runs/
+
+# Ignore local virtual environments (if you use one)
+.venv/
+venv/
